@@ -12,7 +12,7 @@ int ustc_ConnectedComponentLabeling(Mat grayImg, Mat& labelImg, int bin_th) {
 		return MY_FAIL;
 	}
 	Mat binaryImg(grayImg.rows, grayImg.cols, CV_8UC1);
-	threshold(grayImg, binaryImg, bin_th, 1, 0);
+	threshold(grayImg, binaryImg, bin_th, 255, 0);
 	uchar* binaryPtr = binaryImg.data;
 	int* labelPtr = (int*)labelImg.data;
 	int *labelC1, *labelC2, *labelC3, *labelC4;
@@ -33,19 +33,19 @@ int ustc_ConnectedComponentLabeling(Mat grayImg, Mat& labelImg, int bin_th) {
 	labelC3 = labelPtr;
 	labelC4 = labelPtr + 1;
 	//Special judge on the first pixel
-	labelingIndex += ((*binaryPtr) ? 0 : (*labelPtr = labelingIndex, connectedLabel[labelingIndex] = labelingIndex, tailLabel[labelingIndex] = labelingIndex, 1));
+	labelingIndex += ((*binaryPtr) ? (*labelPtr = labelingIndex, connectedLabel[labelingIndex] = labelingIndex, tailLabel[labelingIndex] = labelingIndex, 1) : 0);
 	binaryPtr++;
 	labelPtr++;
 
 	//Special judge on the first row
 	for (colsIndex = binImgCols - 1; colsIndex; colsIndex--, binaryPtr++, labelPtr++) {
-		if (*binaryPtr) continue;
+		if (!*binaryPtr) continue;
 		*labelPtr = ((*(labelPtr - 1)) ? (*(labelPtr - 1)) : (connectedLabel[labelingIndex] = labelingIndex, tailLabel[labelingIndex] = labelingIndex, labelingIndex++));
 	}
 
 	//Ordinary judge on other rows
 	for (rowsIndex = binImgRows - 1; rowsIndex; rowsIndex--) {
-		*labelPtr = ((*binaryPtr) ? 0 : ((*labelC3) ? (*labelC3) : ((*labelC4) ? (*labelC4) : (connectedLabel[labelingIndex] = labelingIndex, tailLabel[labelingIndex] = labelingIndex, labelingIndex++))));
+		*labelPtr = ((*binaryPtr) ? ((*labelC3) ? (*labelC3) : ((*labelC4) ? (*labelC4) : (connectedLabel[labelingIndex] = labelingIndex, tailLabel[labelingIndex] = labelingIndex, labelingIndex++))) : 0);
 		binaryPtr++;
 		labelPtr++;
 		labelC2 = labelC3;
@@ -56,7 +56,7 @@ int ustc_ConnectedComponentLabeling(Mat grayImg, Mat& labelImg, int bin_th) {
 		//Ordinary judge on the other pixels of every row
 		for (colsIndex = binImgCols - 2; colsIndex; colsIndex--, binaryPtr++, labelPtr++, labelC1++, labelC2++, labelC3++, labelC4++) {
 			//labelC4++;
-			if (*binaryPtr) continue;
+			if (!*binaryPtr) continue;
 			cmpFlag = ((*labelC4) ? ((*labelC2) ? ((connectedLabel[*labelC2] == connectedLabel[*labelC4]) ? (4) : (6)) : ((*labelC1) ? ((connectedLabel[*labelC4] == connectedLabel[*labelC1]) ? (4) : (5)) : (4))) : ((*labelC3) ? (3) : ((*labelC2) ? (2) : ((*labelC1) ? (1) : (0)))));
 			*labelPtr = cmpFlag ? ((--cmpFlag) ? ((--cmpFlag) ? ((--cmpFlag) ? ((cmpFlag--, (*labelC4))) : (*labelC3)) : (*labelC2)) : (*labelC1)) : (connectedLabel[labelingIndex] = labelingIndex, tailLabel[labelingIndex] = labelingIndex, labelingIndex++);
 			if (cmpFlag) {
@@ -73,7 +73,7 @@ int ustc_ConnectedComponentLabeling(Mat grayImg, Mat& labelImg, int bin_th) {
 				tailLabel[minLabel] = tailLabel[maxLabel];
 			}
 		}
-		*labelPtr = (*binaryPtr) ? 0 : ((*labelC3) ? (*labelC3) : ((*labelC2) ? (*labelC2) : ((*labelC1) ? (*labelC1) : (connectedLabel[labelingIndex] = labelingIndex, tailLabel[labelingIndex] = labelingIndex, labelingIndex++))));
+		*labelPtr = (*binaryPtr) ? ((*labelC3) ? (*labelC3) : ((*labelC2) ? (*labelC2) : ((*labelC1) ? (*labelC1) : (connectedLabel[labelingIndex] = labelingIndex, tailLabel[labelingIndex] = labelingIndex, labelingIndex++)))) : 0;
 		labelC3++;
 		labelC4++;
 		binaryPtr++;
